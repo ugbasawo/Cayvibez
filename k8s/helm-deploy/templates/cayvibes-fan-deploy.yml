@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.fan }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.fan }}
+spec:
+  ports:
+  - port: 8002 
+    targetPort: 8002
+ 
+    protocol: TCP
+  selector:           
+    app: {{ .Values.fan }}
+
+
+
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.fan }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.fan }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.fan }}
+    spec:
+      containers:
+        - name: {{ .Values.fan }}
+          image: "{{ .Values.fan_image.name }}"
+          imagePullPolicy: IfNotPresent          
+          ports:
+            - containerPort: 8002
+          env:
+            - name: POSTGRES_HOST
+              value: {{ .Values.postgres }}
+
+            - name: POSTGRES_PORT
+              value: '5432'
+
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: cayvibes-configmap
+                  key: postgres_fandb
+            
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: postgresql-user
+
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: postgresql-password
+
+          
+            - name: RABBITMQ_USER
+              value: "admin"
+            - name: RABBITMQ_PASS
+              value: "password"
+            
+            - name: RABBITMQ_HOST
+              value: {{ .Values.rabbitmq }}
+
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: cayvibes-configmap
+                  key: django-secret-key
+
+            - name: GATEWAY_SIGNING_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: cayvibes-configmap
+                  key: gateway-signing-key

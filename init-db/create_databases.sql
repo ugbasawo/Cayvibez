@@ -1,0 +1,4 @@
+CREATE DATABASE gatewaydb;
+CREATE DATABASE celebrity_db;
+CREATE DATABASE fan_db;
+CREATE DATABASE ngo_db;

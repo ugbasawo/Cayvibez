@@ -1,0 +1,85 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres
+    env_file:
+      - .env
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist data to a volume
+      - ./init-db:/docker-entrypoint-initdb.d  # Directory with initialization scripts
+    networks:
+      - cayvibes-network
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    env_file:
+      - .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - cayvibes-network
+
+  api-gateway:
+    container_name: cayvibes-api-gateway
+    image: ${IMAGE_NAME_1}
+    env_file: 
+      - cayvibes-api-gateway/.env
+    ports:
+      - "8000:8000"
+    networks:
+      - cayvibes-network
+    depends_on:
+      - db
+      - rabbitmq
+    restart: always
+
+  celebrity-service:
+    container_name: cayvibes-celebrity-service
+    image: ${IMAGE_NAME_2}
+    env_file: 
+      - cayvibes-celebrity-service/.env
+    ports:
+      - "8002:8002"
+    networks:
+      - cayvibes-network
+    depends_on:
+      - db
+      - rabbitmq
+    restart: always
+
+  fan-service:
+    container_name: cayvibes-fan-service
+    image: ${IMAGE_NAME_3}
+    env_file: 
+      - cayvibes-fan-service/.env
+    ports:
+      - "8001:8001"
+    networks:
+      - cayvibes-network
+    depends_on:
+      - db
+      - rabbitmq
+    restart: always
+
+  ngo-service:
+    container_name: cayvibes-ngo-service
+    image: ${IMAGE_NAME_4}
+    env_file: 
+      - cayvibes-ngo-service/.env
+    ports:
+      - "8003:8003"
+    networks:
+      - cayvibes-network
+    depends_on:
+      - db
+      - rabbitmq
+    restart: always
+
+networks:
+  cayvibes-network:
+
+volumes:
+  postgres_data:

@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.celebrity }}
+  labels:
+    app: {{ .Values.celebrity }}
+spec:
+  type: NodePort
+  ports:
+    - port: 8003
+      targetPort: 8003
+      protocol: TCP
+      nodePort: 32003
+  selector:
+    app: {{ .Values.celebrity }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.celebrity }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.celebrity }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.celebrity }}
+    spec:
+      containers:
+        - name: {{ .Values.celebrity }}
+          image: "{{ .Values.celebrity_image.name }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8003
+          env:
+            - name: POSTGRES_HOST
+              value: {{ .Values.postgres }}
+            - name: POSTGRES_PORT
+              value: '5432'
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configmap.name }}
+                  key: postgres_celebritydb
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: postgresql-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: postgresql-password
+            - name: RABBITMQ_USER
+              value: "admin"
+            - name: RABBITMQ_PASS
+              value: "password"
+            - name: RABBITMQ_HOST
+              value: {{ .Values.rabbitmq }}
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configmap.name }}
+                  key: django-secret-key
+            - name: GATEWAY_SIGNING_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configmap.name }}
+                  key: gateway-signing-key

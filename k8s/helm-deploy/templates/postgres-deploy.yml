@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.postgres }}
+  labels:
+    app: {{ .Values.postgres }}
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: {{ .Values.postgres }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.postgres }}
+spec:
+  serviceName: {{ .Values.postgres }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.postgres }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.postgres }}
+    spec:
+      containers:
+        - name: {{ .Values.postgres }}
+          image: "{{ .Values.postgres_image.name }}:{{ .Values.postgres_image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: postgresql-user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: postgresql-password
+
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          volumeMounts:
+            - name: postgres-pv-claim
+              mountPath: /var/lib/postgresql/data
+
+            - name: postgres-initdb
+              mountPath: /docker-entrypoint-initdb.d
+
+      volumes:
+        - name: postgres-initdb
+          configMap:
+            name: postgres-initdb-config
+            
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-pv-claim
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-volume
+  labels:
+    type: local
+    app: {{ .Values.postgres }}
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain 
+  gcePersistentDisk: 
+    pdName: cayvibes-postgres-disk
+    fsType: ext4 
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-volume-claim
+  labels:
+    app: {{ .Values.postgres }}
+spec:
+  accessModes:
+    - ReadWriteOnce 
+  resources:
+    requests:
+      storage: 10Gi 
+  storageClassName: "" 
+  volumeName: postgres-volume

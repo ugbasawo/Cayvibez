@@ -1,0 +1,24 @@
+api: cayvibes-api-gateway
+celebrity: cayvibes-celebrity
+fan: cayvibes-fan
+ngo: cayvibes-ngo
+postgres: cayvibes-postgres-db
+rabbitmq: cayvibes-rabbitmq
+configmap:
+  name: cayvibes-configmap
+
+
+api_image:
+  name: ""
+celebrity_image:
+  name: ""
+fan_image:
+  name: ""
+ngo_image:
+  name: ""
+postgres_image:
+  name: postgres
+  tag: 14
+rabbitmq_image:
+  name: rabbitmq
+  tag: 3-management

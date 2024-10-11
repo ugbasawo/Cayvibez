@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.api }}
+  labels:
+    app: {{ .Values.api }}
+spec:
+  type: NodePort
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      nodePort: 32000
+  selector:
+    app: {{ .Values.api }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.api }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.api }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.api }}
+    spec:
+      containers:
+        - name: {{ .Values.api }}
+          image: "{{ .Values.api_image.name }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: POSTGRES_HOST
+              value: {{ .Values.postgres }}
+            - name: POSTGRES_PORT
+              value: '5432'
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configmap.name }}
+                  key: postgres_api_gatewaydb
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: postgresql-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secrets
+                  key: postgresql-password
+            - name: RABBITMQ_USER
+              value: "admin"
+            - name: RABBITMQ_PASS
+              value: "password"
+            - name: RABBITMQ_HOST
+              value: {{ .Values.rabbitmq }}
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configmap.name }}
+                  key: django-secret-key
+            - name: GATEWAY_SIGNING_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configmap.name }}
+                  key: gateway-signing-key

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.rabbitmq }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.rabbitmq }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.rabbitmq }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.rabbitmq }}
+    spec:
+      containers:
+      - name: {{ .Values.rabbitmq }}
+        image: "{{ .Values.rabbitmq_image.name }}:{{ .Values.rabbitmq_image.tag }}"
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: "admin"
+        - name: RABBITMQ_DEFAULT_PASS
+          value: "password"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.rabbitmq }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.rabbitmq }}
+  ports:
+    - port: 5672
+      targetPort: 5672
+      protocol: TCP
+      name: amqp
+
+    - port: 15672
+      targetPort: 15672
+      protocol: TCP
+      name: http
+  type: ClusterIP

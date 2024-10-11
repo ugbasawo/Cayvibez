@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configmap.name }}
+  namespace: {{ .Values.namespace }}
+data:
+  postgres_api_gatewaydb: "gatewaydb"
+  postgres_celebritydb: "celebrity_db"
+  postgres_fandb: "fan_db"
+  postgres_ngodb: "ngo_db"
+  gateway-signing-key: "abcerdertosdmmp352082*3=-242==af!"
+  django-secret-key: "django-insecure-*u^@_zv-==d8%1evli_e5gieyujfpp#!3_zf7kpd29nu*pncsc"
+
+
+
+

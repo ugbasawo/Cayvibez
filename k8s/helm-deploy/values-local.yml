@@ -1,0 +1,25 @@
+api: cayvibes-api-gateway
+celebrity: cayvibes-celebrity
+fan: cayvibes-fan
+ngo: cayvibes-ngo
+postgres: cayvibes-postgres-db
+rabbitmq: cayvibes-rabbitmq
+configmap:
+  name: cayvibes-configmap
+
+namespace: dev
+
+api_image:
+  name: us-east1-docker.pkg.dev/iyaawu-platform/cayvibes/cayvibes-api:33
+celebrity_image:
+  name: us-east1-docker.pkg.dev/iyaawu-platform/cayvibes/cayvibes-celebrity:34   
+fan_image:
+  name: us-east1-docker.pkg.dev/iyaawu-platform/cayvibes/cayvibes-fan:34
+ngo_image:
+  name: us-east1-docker.pkg.dev/iyaawu-platform/cayvibes/cayvibes-ngo:34
+postgres_image:
+  name: postgres
+  tag: 14
+rabbitmq_image:
+  name: rabbitmq
+  tag: 3-management
